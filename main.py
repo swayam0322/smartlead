@@ -18,8 +18,8 @@ class SmartLead:
         self.campaignQueue = Queue()
         self.leadQueue = Queue()
         self.stop_event = threading.Event()
-        self.campaign_thread = threading.Thread(target=self.addToLeadQueue)
-        self.lead_thread = threading.Thread(target=self.processLeadQueue)
+        self.campaign_thread = threading.Thread(target=self.addToLeadQueue, daemon=True)
+        self.lead_thread = threading.Thread(target=self.processLeadQueue, daemon=True)
 
     @sleep_and_retry
     @limits(calls=CALLS, period=RATE_LIMIT)
@@ -63,6 +63,8 @@ class SmartLead:
                         f"Lead {message['lead_id']} has not replied and the last message was over 7 days ago."
                     )
                     self._delete_leads(message["campaign_id"], message["lead_id"])
+                else:
+                    print(f"Lead {message['lead_id']} has replied.")
                 self.leadQueue.task_done()
             except Exception:
                 continue  # Handle queue timeout or other exceptions
@@ -136,12 +138,8 @@ class SmartLead:
 
             self.lead_thread.start()  # Start lead processing thread first
             self.campaign_thread.start()  # Start campaign processing thread
-            count = 0
             for campaign in campaigns:
                 self.campaignQueue.put(campaign)
-                if(count == 2):
-                    break
-                count += 1
 
             self.campaignQueue.put(None)  # Signal completion to campaign thread
             self.campaignQueue.join()  # Wait for all campaigns to be processed
