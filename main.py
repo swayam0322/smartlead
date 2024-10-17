@@ -9,7 +9,7 @@ from queue import Queue
 from ratelimit import limits, sleep_and_retry
 
 load_dotenv()
-CALLS = 50
+CALLS = 100
 RATE_LIMIT = 60
 
 class SmartLead:
@@ -20,25 +20,25 @@ class SmartLead:
         self.stop_event = threading.Event()
         self.campaign_thread = threading.Thread(target=self.addToLeadQueue, daemon=True)
         self.lead_thread = threading.Thread(target=self.processLeadQueue, daemon=True)
+        self.params = {"api_key": self.API_KEY}
 
     @sleep_and_retry
     @limits(calls=CALLS, period=RATE_LIMIT)
     def request(self, method, url):
         try:
             if method == "GET":
-                response = requests.get(url)
+                response = requests.get(url,params=self.params)
             else:
-                response = requests.delete(url)
+                response = requests.delete(url,params=self.params)
             response.raise_for_status()
             return response
         except requests.exceptions.RequestException as e:
-            print(f"Error making API GET request to {url}: {e}")
+            print(f"Error making API GET request to {url}")
             return None
 
     def get_message_history(self, campaign_id, lead_id):
         url = (
-            f"https://server.smartlead.ai/api/v1/campaigns/{campaign_id}/leads/"
-            f"{lead_id}/message-history?api_key={self.API_KEY}"
+            f"https://server.smartlead.ai/api/v1/campaigns/{campaign_id}/leads/{lead_id}/message-history"
         )
         response = self.request("GET", url)
         if response:
@@ -72,7 +72,6 @@ class SmartLead:
     def _get_lead_ids(self, campaign_id):
         url = (
             f"https://server.smartlead.ai/api/v1/campaigns/{campaign_id}/leads-export"
-            f"?api_key={self.API_KEY}"
         )
         response = self.request("GET", url)
         if response:
@@ -110,7 +109,7 @@ class SmartLead:
 
     def _get_campaigns(self):
         print("Fetching completed campaigns")
-        url = f"https://server.smartlead.ai/api/v1/campaigns?api_key={self.API_KEY}"
+        url = f"https://server.smartlead.ai/api/v1/campaigns"
         response = self.request("GET", url)
         if response:
             try:
