@@ -136,14 +136,14 @@ class SmartLead:
                 print("No campaigns found")
                 return
 
-            self.lead_thread.start()  # Start lead processing thread first
             self.campaign_thread.start()  # Start campaign processing thread
             for campaign in campaigns:
                 self.campaignQueue.put(campaign)
 
             self.campaignQueue.put(None)  # Signal completion to campaign thread
             self.campaignQueue.join()  # Wait for all campaigns to be processed
-
+            print("LeadQueue size: ", self.leadQueue.qsize())
+            self.lead_thread.start()  # Start lead processing thread first
             self.leadQueue.join()  # Wait for all leads to be processed
 
         except KeyboardInterrupt:
