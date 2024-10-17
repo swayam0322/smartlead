@@ -1,17 +1,20 @@
 import io
+import os
 import threading
 import requests
 import polars as pl
+from dotenv import load_dotenv
 from datetime import datetime, timedelta
 from queue import Queue
 from ratelimit import limits, sleep_and_retry
 
+load_dotenv()
 CALLS = 50
 RATE_LIMIT = 60
 
 class SmartLead:
     def __init__(self):
-        self.API_KEY = "4fbfca55-3d88-4ae3-9a37-68fbf93a2163_x25i27p"
+        self.API_KEY = os.getenv("API_KEY")
         self.campaignQueue = Queue()
         self.leadQueue = Queue()
         self.stop_event = threading.Event()
@@ -49,7 +52,6 @@ class SmartLead:
                 message = self.leadQueue.get(timeout=1)
                 if message is None:
                     self.leadQueue.task_done()
-                    break  # Exit loop when sentinel is received
                 emails = self.get_message_history(
                     message["campaign_id"], message["lead_id"]
                 ).get("history", [])
@@ -134,9 +136,12 @@ class SmartLead:
 
             self.lead_thread.start()  # Start lead processing thread first
             self.campaign_thread.start()  # Start campaign processing thread
+            count = 0
             for campaign in campaigns:
                 self.campaignQueue.put(campaign)
-                break
+                if(count == 2):
+                    break
+                count += 1
 
             self.campaignQueue.put(None)  # Signal completion to campaign thread
             self.campaignQueue.join()  # Wait for all campaigns to be processed
