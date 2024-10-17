@@ -9,7 +9,7 @@ from queue import Queue
 from ratelimit import limits, sleep_and_retry
 
 load_dotenv()
-CALLS = 60
+CALLS = 50
 RATE_LIMIT = 60
 
 class SmartLead:
