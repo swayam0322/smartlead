@@ -1,4 +1,4 @@
-name: Clean Smartleads 
+name: Clean Smartleads
 
 on:
   schedule:
@@ -10,25 +10,27 @@ jobs:
   run-smartlead:
     runs-on: ubuntu-latest
     steps:
-    - name: Check out repository
-      uses: actions/checkout@v4
+      - name: Check out repository
+        uses: actions/checkout@v4
 
-    - name: Set up Python
-      uses: actions/setup-python@v3
-      with:
-        python-version: '3.x'  
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'  
 
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
 
-    - name: Run SmartLead script
-      env:
-        API_KEY: ${{ secrets.API_KEY }}
-      run: python main.py  
+      - name: Run SmartLead script
+        env:
+          API_KEY: ${{ secrets.API_KEY }}  # Ensuring the API_KEY is accessible as an env var
+        run: |
+          echo "Running SmartLead with API_KEY: $API_KEY"  # Debugging step to check if the API_KEY is passed correctly
+          python main.py  
 
-    - name: Handle potential errors
-      if: failure()
-      run: |
-        echo "The SmartLead script encountered an error. Please check the logs for more information."
+      - name: Handle potential errors
+        if: failure()
+        run: |
+          echo "The SmartLead script encountered an error. Please check the logs for more information."
