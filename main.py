@@ -34,7 +34,7 @@ class SmartLead:
             response.raise_for_status()
             return response
         except requests.exceptions.RequestException as e:
-            print(f"Error {response.status_code} making API {method} request to {url}. Retrying in 2 seconds...")
+            print(f"Error {response.status_code} making API {method} request to {url}. Retrying in 2 seconds...: {e}")
             sleep(2)
             return self.request(method, url)
 
@@ -127,7 +127,7 @@ class SmartLead:
     def _delete_leads(self, campaign_id, lead_id):
         self.request(
             "DELETE",
-            f"https://server.smartlead.ai/api/v1/campaigns/{campaign_id}/leads/{lead_id}?api_key={self.API_KEY}",
+            f"https://server.smartlead.ai/api/v1/campaigns/{campaign_id}/leads/{lead_id}",
         )
 
     def execute(self):
@@ -138,13 +138,13 @@ class SmartLead:
                 return
 
             self.campaign_thread.start()  # Start campaign processing thread
+            self.lead_thread.start()  # Start lead processing thread first
             for campaign in campaigns:
                 self.campaignQueue.put(campaign)
 
             self.campaignQueue.put(None)  # Signal completion to campaign thread
             self.campaignQueue.join()  # Wait for all campaigns to be processed
-            print("LeadQueue size: ", self.leadQueue.qsize())
-            self.lead_thread.start()  # Start lead processing thread first
+            # print("LeadQueue size: ", self.leadQueue.qsize())
             self.leadQueue.join()  # Wait for all leads to be processed
 
         except KeyboardInterrupt:
