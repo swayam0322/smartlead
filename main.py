@@ -3,6 +3,7 @@ import os
 import threading
 import requests
 import polars as pl
+from time import sleep
 from dotenv import load_dotenv
 from datetime import datetime, timedelta
 from queue import Queue
@@ -27,14 +28,15 @@ class SmartLead:
     def request(self, method, url):
         try:
             if method == "GET":
-                response = requests.get(url,params=self.params)
+                response = requests.get(url, params=self.params)
             else:
-                response = requests.delete(url,params=self.params)
+                response = requests.delete(url, params=self.params)
             response.raise_for_status()
             return response
         except requests.exceptions.RequestException as e:
-            print(f"Error making API GET request to {url}")
-            return None
+            print(f"Error {response.status_code} making API {method} request to {url}. Retrying in 2 seconds...")
+            sleep(2)
+            return self.request(method, url)
 
     def get_message_history(self, campaign_id, lead_id):
         url = (
