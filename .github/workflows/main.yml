@@ -2,20 +2,33 @@ name: Clean Smartleads
 
 on:
   schedule:
-    - cron: '0 4 * * *'  # Runs every day at 4 AM
+    # This will run at 18:30 UTC every day, which is midnight IST
+    - cron: '30 18 * * *'
+  workflow_dispatch:  # Allows manual triggering
 
 jobs:
-  build:
+  run-smartlead:
     runs-on: ubuntu-latest
-    env:
-      API_KEY: ${{ secrets.API_KEY }}
     steps:
-      - uses: actions/checkout@v2
-      - name: Set up Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: '3.x'
-      - name: Install dependencies
-        run: pip install -r requirements.txt
-      - name: Run Script
-        run: python main.py
+    - name: Check out repository
+      uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'  
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Run SmartLead script
+      env:
+        API_KEY: ${{ secrets.API_KEY }}
+      run: python main.py  
+
+    - name: Handle potential errors
+      if: failure()
+      run: |
+        echo "The SmartLead script encountered an error. Please check the logs for more information."
