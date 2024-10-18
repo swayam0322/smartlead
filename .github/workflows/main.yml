@@ -27,7 +27,6 @@ jobs:
         env:
           API_KEY: ${{ secrets.API_KEY }}  # Ensuring the API_KEY is accessible as an env var
         run: |
-          echo "Running SmartLead with API_KEY: $API_KEY"  # Debugging step to check if the API_KEY is passed correctly
           python main.py  
 
       - name: Handle potential errors
