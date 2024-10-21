@@ -3,7 +3,7 @@ name: Clean Smartleads
 on:
   schedule:
     # This will run at 18:30 UTC every day, which is midnight IST
-    - cron: '30 18 * * *'
+    # - cron: '30 18 * * *'
   workflow_dispatch:  # Allows manual triggering
 
 jobs:
